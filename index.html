@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRAFCOLOR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Sans", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, "MS PGothic", "ＭＳ Ｐゴシック", sans-serif;
+      overscroll-behavior-y: none; /* Optional: to prevent pull-to-refresh on some devices if not desired */
+    }
+    /* Custom scrollbar for better aesthetics if needed */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e2e8f0; /* slate-200 */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8; /* slate-400 */
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b; /* slate-500 */
+    }
+    .font-crafcolor-c1 { color: #1E90FF; } /* DodgerBlue for C */
+    .font-crafcolor-r1 { color: #FF6347; } /* Tomato for R */
+    .font-crafcolor-a { color: #3CB371; } /* MediumSeaGreen for A */
+    .font-crafcolor-f { color: #FFD700; } /* Gold for F */
+    .font-crafcolor-c2 { color: #9932CC; } /* DarkOrchid for C */
+    .font-crafcolor-o1 { color: #FF1493; } /* DeepPink for O */
+    .font-crafcolor-l { color: #87CEEB; } /* SkyBlue for L */
+    .font-crafcolor-o2 { color: #FF7F50; } /* Coral for O */
+    /* The final R in CRAFCOLOR will use text-slate-900 directly */
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/"
+  }
+}
+</script>
+  <!-- jsPDF and jsPDF-AutoTable for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-200 text-slate-800">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

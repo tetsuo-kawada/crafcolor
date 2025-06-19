@@ -1,0 +1,6 @@
+{
+  "name": "CRAFCOLOR",
+  "description": "CRAFCOLOR: An application to upload images, extract colors using a magnifying loupe, and display the selected color mix ratios. Supports multiple languages.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
