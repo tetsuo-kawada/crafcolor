@@ -278,8 +278,21 @@ const App: React.FC = () => {
       className="min-h-screen bg-slate-200 py-[clamp(1rem,4vh,2rem)] px-[clamp(0.5rem,2vw,1rem)] flex flex-col items-center selection:bg-sky-200 selection:text-sky-900 transition-colors duration-300 ease-in-out"
       style={currentBackgroundStyle}
     >
-      <header className="mb-[clamp(1.5rem,5vh,3rem)] text-center w-full max-w-4xl relative">
-        <div className="absolute top-0 right-0 z-20">
+      <header className="mb-[clamp(1.5rem,5vh,3rem)] w-full max-w-4xl flex flex-col items-center">
+        <div className="text-center w-full">
+          <h1 className="font-black mt-[clamp(0.75rem,3vw,1.5rem)] mb-[clamp(0.5rem,2vw,1rem)] text-[clamp(1.875rem,5vw,3rem)]">
+            <span className="tracking-[0.2em]">
+              <span className="font-crafcolor-c1">C</span><span className="font-crafcolor-r1">R</span>
+              <span className="font-crafcolor-a">A</span><span className="font-crafcolor-f">F</span>
+              <span className="font-crafcolor-c2">C</span><span className="font-crafcolor-o1">O</span>
+              <span className="font-crafcolor-l">L</span><span className="font-crafcolor-o2">O</span>
+              <span className="font-crafcolor-r2">R</span>
+            </span>
+          </h1>
+          <p className="text-slate-600 tracking-[0.2em] text-[clamp(0.875rem,2.5vw,1.125rem)]">{t('appSubtitle')}</p>
+        </div>
+        {/* Language selector container MOVED and MODIFIED */}
+        <div className="mt-4 w-full flex justify-center">
           <label htmlFor="language-select" className="sr-only">{t('languageSelector_label')}</label>
           <select
             id="language-select" value={language} onChange={handleLanguageChange}
@@ -291,22 +304,13 @@ const App: React.FC = () => {
             ))}
           </select>
         </div>
-        <h1 className="font-black mb-[clamp(0.5rem,2vw,1rem)] text-[clamp(1.875rem,5vw,3rem)]">
-          <span className="tracking-[0.2em]">
-            <span className="font-crafcolor-c1">C</span><span className="font-crafcolor-r1">R</span>
-            <span className="font-crafcolor-a">A</span><span className="font-crafcolor-f">F</span>
-            <span className="font-crafcolor-c2">C</span><span className="font-crafcolor-o1">O</span>
-            <span className="font-crafcolor-l">L</span><span className="font-crafcolor-o2">O</span>
-            <span className="text-slate-900">R</span>
-          </span>
-        </h1>
-        <p className="text-slate-600 tracking-[0.2em] text-[clamp(0.875rem,2.5vw,1.125rem)]">{t('appSubtitle')}</p>
       </header>
 
       {currentPage === 'main' ? renderMainContent() : <TermsOfService onBack={() => setCurrentPage('main')} />}
 
-      <footer className="mt-auto pt-[clamp(2rem,8vh,4rem)] text-center text-[clamp(0.75rem,2vw,0.875rem)] w-full max-w-2xl">
-        <div className="mb-2 flex flex-wrap justify-center items-center gap-x-2">
+      {/* Footer top padding reduced */}
+      <footer className="mt-auto pt-[clamp(0.5rem,2vh,1rem)] text-center text-[clamp(0.75rem,2vw,0.875rem)] w-full max-w-2xl">
+        <div className="mb-1 flex flex-wrap justify-center items-center gap-x-2">
           <button
             onClick={() => setCurrentPage('terms')}
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"

@@ -84,7 +84,7 @@ export const translations: AllTranslations = {
     terms_content_s8_p1: 'We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will make reasonable efforts to provide at least 30 days\' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Application after those revisions become effective, you agree to be bound by the revised terms.',
     terms_content_contact: 'If you have any questions about these Terms, please contact us at {CONTACT_FORM_LINK}.',
     terms_contact_url: 'https://forms.gle/csjy48wACEEusuE9A',
-    terms_content_lastUpdated: 'Last updated: August 1, 2024',
+    terms_content_lastUpdated: 'Last updated: June 20, 2025',
   },
   ja: {
     appTitle: 'CRAFCOLOR',
@@ -151,7 +151,7 @@ export const translations: AllTranslations = {
     terms_content_s8_p1: '運営は、独自の裁量により、いつでも本規約を変更または置き換える権利を留保します。何が重大な変更を構成するかは、運営の独自の裁量によって決定されます。これらの改訂が発効した後も本アプリケーションへのアクセスまたは使用を継続することにより、ユーザーは改訂された規約に拘束されることに同意したものとみなされます。',
     terms_content_contact: '本規約についてご不明な点がございましたら、{CONTACT_FORM_LINK} までご連絡ください。',
     terms_contact_url: 'https://forms.gle/csjy48wACEEusuE9A',
-    terms_content_lastUpdated: '最終更新日：2024年8月1日',
+    terms_content_lastUpdated: '最終更新日：2025年6月20日',
   },
   ko: {
     appTitle: 'CRAFCOLOR',
@@ -218,7 +218,7 @@ export const translations: AllTranslations = {
     terms_content_s8_p1: 'We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will make reasonable efforts to provide at least 30 days\' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Application after those revisions become effective, you agree to be bound by the revised terms.',
     terms_content_contact: 'If you have any questions about these Terms, please contact us at {CONTACT_FORM_LINK}.',
     terms_contact_url: 'https://forms.gle/csjy48wACEEusuE9A',
-    terms_content_lastUpdated: 'Last updated: August 1, 2024',
+    terms_content_lastUpdated: '최종 업데이트: 2025년 6월 20일',
   },
   zh: {
     appTitle: 'CRAFCOLOR',
@@ -285,7 +285,7 @@ export const translations: AllTranslations = {
     terms_content_s8_p1: 'We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will make reasonable efforts to provide at least 30 days\' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Application after those revisions become effective, you agree to be bound by the revised terms.',
     terms_content_contact: 'If you have any questions about these Terms, please contact us at {CONTACT_FORM_LINK}.',
     terms_contact_url: 'https://forms.gle/csjy48wACEEusuE9A',
-    terms_content_lastUpdated: 'Last updated: August 1, 2024',
+    terms_content_lastUpdated: '最后更新：2025年6月20日',
   },
 };
 

@@ -1,5 +1,4 @@
 
-
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { CMYKColor, RGBColor } from '../types';
 import { rgbToCmyk } from '../utils/colorConverter';
@@ -17,13 +16,13 @@ interface ColorPickerCanvasProps {
 const LOUPE_DRAWING_SURFACE_SIZE = 120;
 const LOUPE_MAGNIFICATION = 4;
 
-const LOUPE_CANVAS_BORDER_WIDTH = 1;
-const LOUPE_CONTAINER_BORDER_WIDTH = 2;
+const LOUPE_CANVAS_BORDER_WIDTH = 1; // Assuming canvas in Loupe has border
+const LOUPE_CONTAINER_BORDER_WIDTH = 2; // Border of the div holding the Loupe canvas
 
 const FIXED_CONTAINER_STYLE_DIMENSION =
   LOUPE_DRAWING_SURFACE_SIZE +
-  (2 * LOUPE_CANVAS_BORDER_WIDTH) +
-  (2 * LOUPE_CONTAINER_BORDER_WIDTH);
+  (2 * LOUPE_CANVAS_BORDER_WIDTH) + // Account for Loupe's internal canvas border if any
+  (2 * LOUPE_CONTAINER_BORDER_WIDTH); // Account for Loupe container's border
 
 
 const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
@@ -35,12 +34,15 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoupeVisible, setIsLoupeVisible] = useState(false);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [canvasMousePosition, setCanvasMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 }); // Screen coordinates for loupe positioning
+  const [canvasMousePosition, setCanvasMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 }); // Drawing surface coordinates
   const [imageDimensions, setImageDimensions] = useState<{width: number, height: number} | null>(null); // Stores drawing surface dimensions
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const { t } = useLanguage();
 
+  const imageIsEffectivelyLoaded = useCallback(() => {
+    return imageDimensions !== null && canvasRef.current && canvasRef.current.width > 0 && canvasRef.current.height > 0;
+  }, [imageDimensions, canvasRef]);
 
   const drawImageOnCanvas = useCallback((src: string) => {
     const canvas = canvasRef.current;
@@ -48,6 +50,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    setIsLoupeVisible(false); // Hide loupe when new image is drawn or cleared
     const img = new Image();
     img.onload = () => {
       let drawWidth = img.naturalWidth;
@@ -62,20 +65,20 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
         drawHeight = maxCanvasHeight;
         drawWidth = drawHeight * aspectRatio;
       }
-      // Ensure width is still within maxCanvasWidth after height adjustment
       if (drawWidth > maxCanvasWidth) {
         drawWidth = maxCanvasWidth;
         drawHeight = drawWidth / aspectRatio;
       }
       
-      canvas.width = drawWidth; // Set drawing surface width
-      canvas.height = drawHeight; // Set drawing surface height
+      canvas.width = drawWidth;
+      canvas.height = drawHeight;
       ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
       setImageDimensions({width: drawWidth, height: drawHeight});
     };
     img.onerror = () => {
       console.error("Failed to load image.");
       setImageDimensions(null);
+       setIsLoupeVisible(false);
     }
     img.src = src;
   }, [maxCanvasWidth, maxCanvasHeight]);
@@ -90,72 +93,110 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
         if (ctx) {
              ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-        // Reset drawing surface size when image is cleared
         canvas.width = 0; 
         canvas.height = 0;
       }
       setImageDimensions(null);
+      setIsLoupeVisible(false);
     }
   }, [imageSrc, drawImageOnCanvas]);
 
-
-  const getPixelColor = (x: number, y: number): RGBColor | null => {
+  const updateLoupePositionAndGetDrawingCoords = useCallback((clientX: number, clientY: number): { drawingX: number; drawingY: number } | null => {
     const canvas = canvasRef.current;
-    // Use imageDimensions (drawing surface dimensions) for clamping
-    if (!canvas || !imageDimensions) return null; 
+    if (!canvas || !imageDimensions || !imageIsEffectivelyLoaded()) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    const displayX = clientX - rect.left;
+    const displayY = clientY - rect.top;
+    
+    // Check if the pointer is within the visual bounds of the canvas element
+    // This is more for mouse; touch usually starts on element.
+    if (displayX < 0 || displayX > rect.width || displayY < 0 || displayY > rect.height) {
+        // If mouse moves completely off canvas, hide loupe. For touch, onTouchEnd handles this.
+        // setIsLoupeVisible(false); 
+        // We let onMouseLeave handle this for mouse for simplicity. TouchEnd handles touch.
+        return null; 
+    }
+
+    const scaleX = canvas.width / rect.width; // drawing surface / display size
+    const scaleY = canvas.height / rect.height;
+
+    const drawingXUnclamped = displayX * scaleX;
+    const drawingYUnclamped = displayY * scaleY;
+
+    const clampedDrawingX = Math.max(0, Math.min(drawingXUnclamped, imageDimensions.width - 1));
+    const clampedDrawingY = Math.max(0, Math.min(drawingYUnclamped, imageDimensions.height - 1));
+
+    setCanvasMousePosition({ x: clampedDrawingX, y: clampedDrawingY }); // For Loupe source
+    setMousePosition({ x: clientX, y: clientY }); // For Loupe div screen position
+    return { drawingX: clampedDrawingX, drawingY: clampedDrawingY };
+  }, [imageDimensions, imageIsEffectivelyLoaded]);
+
+
+  const getPixelColor = useCallback((x: number, y: number): RGBColor | null => {
+    const canvas = canvasRef.current;
+    if (!canvas || !imageDimensions || !imageIsEffectivelyLoaded()) return null; 
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-
-    // x and y are already scaled to drawing surface coordinates
-    const clampedX = Math.max(0, Math.min(x, imageDimensions.width - 1));
-    const clampedY = Math.max(0, Math.min(y, imageDimensions.height - 1));
     
-    const pixelData = ctx.getImageData(clampedX, clampedY, 1, 1).data;
+    const pixelData = ctx.getImageData(x, y, 1, 1).data;
     return { r: pixelData[0], g: pixelData[1], b: pixelData[2] };
-  };
+  }, [imageDimensions, imageIsEffectivelyLoaded]);
 
-  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !imageDimensions || canvas.width === 0 || canvas.height === 0) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const displayX = event.clientX - rect.left;
-    const displayY = event.clientY - rect.top;
-
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    const drawingX = displayX * scaleX;
-    const drawingY = displayY * scaleY;
-    
-    setCanvasMousePosition({ x: drawingX, y: drawingY });
-    setMousePosition({ x: event.clientX, y: event.clientY });
-    if (!isLoupeVisible) setIsLoupeVisible(true);
-  };
-
-  const handleMouseLeaveCanvas = () => {
-    setIsLoupeVisible(false);
-  };
-
-  const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !imageDimensions || canvas.width === 0 || canvas.height === 0) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const displayX = event.clientX - rect.left;
-    const displayY = event.clientY - rect.top;
-
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    const drawingX = displayX * scaleX;
-    const drawingY = displayY * scaleY;
-
+  const selectColorAtPosition = useCallback((drawingX: number, drawingY: number) => {
+    if (!imageIsEffectivelyLoaded()) return; // Redundant check, but safe
     const rgbColor = getPixelColor(drawingX, drawingY);
     if (rgbColor) {
       const cmykColor = rgbToCmyk(rgbColor);
       onColorSelect(cmykColor);
     }
+  },[imageIsEffectivelyLoaded, getPixelColor, onColorSelect]);
+
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!imageIsEffectivelyLoaded()) return;
+    updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY);
+    if (!isLoupeVisible) setIsLoupeVisible(true);
+  };
+
+  const handleMouseLeaveCanvas = () => {
+    // This will hide loupe if mouse leaves, even if a touch is ongoing.
+    // This is generally acceptable. Touch events will manage their own visibility.
+    setIsLoupeVisible(false);
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!imageIsEffectivelyLoaded()) return;
+    const coords = updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY);
+    if (coords) {
+      selectColorAtPosition(coords.drawingX, coords.drawingY);
+    }
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!imageIsEffectivelyLoaded() || event.touches.length !== 1) return;
+    // No preventDefault here to allow tap-to-select (handled by touchend)
+    const touch = event.touches[0];
+    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+    setIsLoupeVisible(true);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!imageIsEffectivelyLoaded() || !isLoupeVisible || event.touches.length !== 1) return;
+    event.preventDefault(); // Prevent page scrolling while dragging loupe
+    const touch = event.touches[0];
+    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!imageIsEffectivelyLoaded() || !isLoupeVisible || event.changedTouches.length !== 1) return;
+    const touch = event.changedTouches[0];
+    // Use the final touch position for color selection
+    const coords = updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+    if (coords) {
+      selectColorAtPosition(coords.drawingX, coords.drawingY);
+    }
+    setIsLoupeVisible(false);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -193,7 +234,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
       className={`relative flex justify-center items-center w-full transition-all duration-150 ease-in-out rounded-lg
         ${!imageDimensions
           ? `border-2 border-dashed ${isDraggingOver ? 'border-sky-500 bg-sky-50' : 'border-slate-400'} p-[clamp(0.75rem,3vw,1rem)] min-h-[clamp(150px,30vh,250px)]`
-          : 'border-none p-0' // No padding for the container when image is shown, canvas handles its own border
+          : 'border-none p-0'
         }`
       }
       onDragOver={handleDragOver}
@@ -207,14 +248,16 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeaveCanvas}
         onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className={`block rounded-lg
           ${imageDimensions ? 'w-full h-auto cursor-crosshair border border-slate-300' : 'cursor-default'}
         `}
         style={{
-          // width and height attributes (drawing surface) are set in drawImageOnCanvas
-          // CSS width is 100% (from w-full), CSS height is auto to maintain aspect ratio.
           display: imageDimensions ? 'block' : 'none',
-          backgroundColor: 'transparent', // Ensure no default canvas background interferes
+          backgroundColor: 'transparent',
+          touchAction: 'none', // Helps prevent default touch actions like scroll/zoom on the canvas
         }}
         aria-label={imageDimensions ? t('canvasAriaLabel') : undefined}
       />
@@ -226,7 +269,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
           <p className="text-[clamp(0.75rem,2.5vw,1rem)]">{t('canvasPlaceholderDragDrop')}</p>
         </div>
       )}
-      {isLoupeVisible && imageDimensions && canvasRef.current && canvasRef.current.width > 0 && (
+      {isLoupeVisible && imageIsEffectivelyLoaded() && canvasRef.current && (
         <div
           className="fixed pointer-events-none z-50 rounded-full overflow-hidden shadow-2xl border-2 border-white bg-white"
           style={{
@@ -234,9 +277,9 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
             top: `${mousePosition.y}px`,
             width: `${FIXED_CONTAINER_STYLE_DIMENSION}px`,
             height: `${FIXED_CONTAINER_STYLE_DIMENSION}px`,
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(-50%, -50%)', // Center loupe on cursor/touch point
           }}
-          aria-hidden="true"
+          aria-hidden="true" // Decorative, information conveyed via main canvas interaction
         >
           <Loupe
             sourceCanvas={canvasRef.current}
@@ -253,3 +296,4 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
 };
 
 export default ColorPickerCanvas;
+
