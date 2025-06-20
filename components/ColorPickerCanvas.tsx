@@ -15,14 +15,15 @@ interface ColorPickerCanvasProps {
 
 const LOUPE_DRAWING_SURFACE_SIZE = 120;
 const LOUPE_MAGNIFICATION = 4;
+const TOUCH_LOUPE_OFFSET_Y = -80; // Offset for touch interactions to prevent finger occlusion
 
 const LOUPE_CANVAS_BORDER_WIDTH = 1; // Assuming canvas in Loupe has border
 const LOUPE_CONTAINER_BORDER_WIDTH = 2; // Border of the div holding the Loupe canvas
 
 const FIXED_CONTAINER_STYLE_DIMENSION =
   LOUPE_DRAWING_SURFACE_SIZE +
-  (2 * LOUPE_CANVAS_BORDER_WIDTH) + // Account for Loupe's internal canvas border if any
-  (2 * LOUPE_CONTAINER_BORDER_WIDTH); // Account for Loupe container's border
+  (2 * LOUPE_CANVAS_BORDER_WIDTH) +
+  (2 * LOUPE_CONTAINER_BORDER_WIDTH);
 
 
 const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
@@ -50,7 +51,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    setIsLoupeVisible(false); // Hide loupe when new image is drawn or cleared
+    setIsLoupeVisible(false);
     const img = new Image();
     img.onload = () => {
       let drawWidth = img.naturalWidth;
@@ -65,7 +66,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
         drawHeight = maxCanvasHeight;
         drawWidth = drawHeight * aspectRatio;
       }
-      if (drawWidth > maxCanvasWidth) {
+      if (drawWidth > maxCanvasWidth) { // Re-check width constraint after height adjustment
         drawWidth = maxCanvasWidth;
         drawHeight = drawWidth / aspectRatio;
       }
@@ -101,7 +102,11 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
     }
   }, [imageSrc, drawImageOnCanvas]);
 
-  const updateLoupePositionAndGetDrawingCoords = useCallback((clientX: number, clientY: number): { drawingX: number; drawingY: number } | null => {
+  const updateLoupePositionAndGetDrawingCoords = useCallback((
+    clientX: number,
+    clientY: number,
+    isTouchEvent: boolean = false
+  ): { drawingX: number; drawingY: number } | null => {
     const canvas = canvasRef.current;
     if (!canvas || !imageDimensions || !imageIsEffectivelyLoaded()) return null;
 
@@ -109,16 +114,11 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
     const displayX = clientX - rect.left;
     const displayY = clientY - rect.top;
     
-    // Check if the pointer is within the visual bounds of the canvas element
-    // This is more for mouse; touch usually starts on element.
     if (displayX < 0 || displayX > rect.width || displayY < 0 || displayY > rect.height) {
-        // If mouse moves completely off canvas, hide loupe. For touch, onTouchEnd handles this.
-        // setIsLoupeVisible(false); 
-        // We let onMouseLeave handle this for mouse for simplicity. TouchEnd handles touch.
         return null; 
     }
 
-    const scaleX = canvas.width / rect.width; // drawing surface / display size
+    const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
     const drawingXUnclamped = displayX * scaleX;
@@ -127,8 +127,11 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
     const clampedDrawingX = Math.max(0, Math.min(drawingXUnclamped, imageDimensions.width - 1));
     const clampedDrawingY = Math.max(0, Math.min(drawingYUnclamped, imageDimensions.height - 1));
 
-    setCanvasMousePosition({ x: clampedDrawingX, y: clampedDrawingY }); // For Loupe source
-    setMousePosition({ x: clientX, y: clientY }); // For Loupe div screen position
+    setCanvasMousePosition({ x: clampedDrawingX, y: clampedDrawingY });
+    
+    const loupeDisplayY = isTouchEvent ? clientY + TOUCH_LOUPE_OFFSET_Y : clientY;
+    setMousePosition({ x: clientX, y: loupeDisplayY });
+    
     return { drawingX: clampedDrawingX, drawingY: clampedDrawingY };
   }, [imageDimensions, imageIsEffectivelyLoaded]);
 
@@ -144,7 +147,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
   }, [imageDimensions, imageIsEffectivelyLoaded]);
 
   const selectColorAtPosition = useCallback((drawingX: number, drawingY: number) => {
-    if (!imageIsEffectivelyLoaded()) return; // Redundant check, but safe
+    if (!imageIsEffectivelyLoaded()) return;
     const rgbColor = getPixelColor(drawingX, drawingY);
     if (rgbColor) {
       const cmykColor = rgbToCmyk(rgbColor);
@@ -155,19 +158,17 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!imageIsEffectivelyLoaded()) return;
-    updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY);
+    updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY, false);
     if (!isLoupeVisible) setIsLoupeVisible(true);
   };
 
   const handleMouseLeaveCanvas = () => {
-    // This will hide loupe if mouse leaves, even if a touch is ongoing.
-    // This is generally acceptable. Touch events will manage their own visibility.
     setIsLoupeVisible(false);
   };
 
   const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!imageIsEffectivelyLoaded()) return;
-    const coords = updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY);
+    const coords = updateLoupePositionAndGetDrawingCoords(event.clientX, event.clientY, false);
     if (coords) {
       selectColorAtPosition(coords.drawingX, coords.drawingY);
     }
@@ -175,24 +176,22 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
 
   const handleTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
     if (!imageIsEffectivelyLoaded() || event.touches.length !== 1) return;
-    // No preventDefault here to allow tap-to-select (handled by touchend)
     const touch = event.touches[0];
-    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY, true);
     setIsLoupeVisible(true);
   };
 
   const handleTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
     if (!imageIsEffectivelyLoaded() || !isLoupeVisible || event.touches.length !== 1) return;
-    event.preventDefault(); // Prevent page scrolling while dragging loupe
+    event.preventDefault(); 
     const touch = event.touches[0];
-    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+    updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY, true);
   };
 
   const handleTouchEnd = (event: React.TouchEvent<HTMLCanvasElement>) => {
     if (!imageIsEffectivelyLoaded() || !isLoupeVisible || event.changedTouches.length !== 1) return;
     const touch = event.changedTouches[0];
-    // Use the final touch position for color selection
-    const coords = updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY);
+    const coords = updateLoupePositionAndGetDrawingCoords(touch.clientX, touch.clientY, true);
     if (coords) {
       selectColorAtPosition(coords.drawingX, coords.drawingY);
     }
@@ -257,7 +256,7 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
         style={{
           display: imageDimensions ? 'block' : 'none',
           backgroundColor: 'transparent',
-          touchAction: 'none', // Helps prevent default touch actions like scroll/zoom on the canvas
+          touchAction: 'none', 
         }}
         aria-label={imageDimensions ? t('canvasAriaLabel') : undefined}
       />
@@ -277,9 +276,9 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
             top: `${mousePosition.y}px`,
             width: `${FIXED_CONTAINER_STYLE_DIMENSION}px`,
             height: `${FIXED_CONTAINER_STYLE_DIMENSION}px`,
-            transform: 'translate(-50%, -50%)', // Center loupe on cursor/touch point
+            transform: 'translate(-50%, -50%)',
           }}
-          aria-hidden="true" // Decorative, information conveyed via main canvas interaction
+          aria-hidden="true"
         >
           <Loupe
             sourceCanvas={canvasRef.current}
@@ -296,4 +295,3 @@ const ColorPickerCanvas: React.FC<ColorPickerCanvasProps> = ({
 };
 
 export default ColorPickerCanvas;
-
