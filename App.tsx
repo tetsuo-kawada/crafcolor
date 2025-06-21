@@ -409,7 +409,9 @@ const App: React.FC = () => {
       <footer className="mt-auto pt-[clamp(0.5rem,2vh,1rem)] text-center text-[clamp(0.75rem,2vw,0.875rem)] w-full max-w-2xl">
         <div className="mb-1 flex flex-wrap justify-center items-center gap-x-2">
           <a
-            href="how-to-use.html"
+            href="/howto"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerHowToUseLinkAriaLabelText}
           >
@@ -427,7 +429,9 @@ const App: React.FC = () => {
           </a>
           <span className="text-white" aria-hidden="true">｜</span>
           <a
-            href="terms.html"
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerTermsLinkAriaLabelText}
           >
