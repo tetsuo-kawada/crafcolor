@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [initialPageBackground, setInitialPageBackground] = useState<string | null>(null);
   const [savedColors, setSavedColors] = useState<CMYKColor[]>([]);
 
-  const appSubtitleText = '画像内の作りたい色を選択する事でおおよその色の配合率が調べられます。\nあなたの調色ライフがもっと楽しくなりますように。';
+  const appSubtitleText = '読み込んだ画像の色を選択する事でおおよその色の配合率が調べられます。\nあなたの調色ライフがもっと楽しくなりますように。';
   const footerTermsLinkText = '利用規約';
   const footerTermsLinkAriaLabelText = '利用規約を表示';
   const footerHowToUseLinkText = '使い方';
