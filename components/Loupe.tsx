@@ -1,5 +1,5 @@
+
 import React, { useEffect, useRef } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoupeProps {
   sourceCanvas: HTMLCanvasElement | null;
@@ -19,7 +19,7 @@ const Loupe: React.FC<LoupeProps> = ({
   crosshairColor = 'rgba(255, 0, 0, 0.7)',
 }) => {
   const loupeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const { t } = useLanguage();
+  const loupeAriaLabelText = "色抽出のための十字線付き拡大画像エリア";
 
   useEffect(() => {
     if (!sourceCanvas || !loupeCanvasRef.current) return;
@@ -33,7 +33,7 @@ const Loupe: React.FC<LoupeProps> = ({
     const srcRectSize = size / magnification;
     const srcRectX = sourceX - srcRectSize / 2;
     const srcRectY = sourceY - srcRectSize / 2;
-    
+
     loupeCtx.imageSmoothingEnabled = false; // For pixelated effect
 
     loupeCtx.clearRect(0, 0, size, size);
@@ -52,10 +52,10 @@ const Loupe: React.FC<LoupeProps> = ({
     // Draw a small central crosshair
     const centerX = size / 2;
     const centerY = size / 2;
-    const crosshairLength = Math.min(size / 10, 5); 
+    const crosshairLength = Math.min(size / 10, 5);
 
     loupeCtx.strokeStyle = crosshairColor;
-    loupeCtx.lineWidth = 1; 
+    loupeCtx.lineWidth = 1;
 
     // Horizontal line
     loupeCtx.beginPath();
@@ -76,7 +76,7 @@ const Loupe: React.FC<LoupeProps> = ({
       ref={loupeCanvasRef}
       className="border border-gray-400 shadow-lg"
       style={{ borderRadius: '50%' }}
-      aria-label={t('loupeAriaLabel')}
+      aria-label={loupeAriaLabelText}
     />
   );
 };

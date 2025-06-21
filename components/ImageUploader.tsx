@@ -1,6 +1,5 @@
 
 import React, { useRef } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
 
 interface ImageUploaderProps {
   onImageUpload: (dataUrl: string) => void;
@@ -8,7 +7,7 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { t } = useLanguage();
+  const uploadButtonText = '画像アップロード';
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,13 +34,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
         ref={fileInputRef}
         onChange={handleFileChange}
         className="hidden"
-        aria-label={t('uploadButton')}
+        aria-label={uploadButtonText}
       />
       <button
         onClick={handleClick}
         className="px-[clamp(1.5rem,5vw,2.5rem)] py-[clamp(0.6rem,2.5vw,0.875rem)] bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-150 ease-in-out text-[clamp(0.875rem,2.5vw,1.125rem)]"
       >
-        {t('uploadButton')}
+        {uploadButtonText}
       </button>
     </div>
   );
