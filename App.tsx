@@ -410,7 +410,7 @@ const App: React.FC = () => {
         <div className="mb-1 flex flex-wrap justify-center items-center gap-x-2">
           <a
             href="/howto"
-            target="_blank"
+            target="_self"
             rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerHowToUseLinkAriaLabelText}
@@ -420,7 +420,7 @@ const App: React.FC = () => {
           <span className="text-white" aria-hidden="true">｜</span>
           <a
             href="https://forms.gle/csjy48wACEEusuE9A"
-            target="_blank"
+            target="_self"
             rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerContactLinkAriaLabelText}
