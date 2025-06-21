@@ -27,8 +27,10 @@ const App: React.FC = () => {
   const appSubtitleText = '画像内の作りたい色を選択する事でおおよその色の配合率が調べられます。\nあなたの調色ライフがもっと楽しくなりますように。';
   const footerTermsLinkText = '利用規約';
   const footerTermsLinkAriaLabelText = '利用規約を表示';
-  const footerHowToUseLinkText = '使い方'; // New text
-  const footerHowToUseLinkAriaLabelText = '使い方ページを表示'; // New text
+  const footerHowToUseLinkText = '使い方';
+  const footerHowToUseLinkAriaLabelText = '使い方ページを表示';
+  const footerPrivacyPolicyLinkText = 'プライバシーポリシー'; // New text
+  const footerPrivacyPolicyLinkAriaLabelText = 'プライバシーポリシーを表示'; // New text
   const footerContactLinkText = 'お問い合わせ';
   const footerContactLinkAriaLabelText = 'お問い合わせフォームを開く';
   const footerCreaterPrefixText = 'Creater：';
@@ -218,7 +220,7 @@ const App: React.FC = () => {
               let textColorToSet: [number, number, number] | undefined;
               switch (data.column.index) {
                 case 0: fillColor = [220, 223, 225]; textColorToSet = [0, 0, 0]; break;
-                case 1: fillColor = [0, 183, 235]; textColorToSet = [0, 0, 0]; break;
+                case 1: fillColor = [255, 255, 255]; textColorToSet = [0, 0, 0]; break; // Cyan header bg white, text black
                 case 2: fillColor = [236, 0, 140]; textColorToSet = [255, 255, 255]; break;
                 case 3: fillColor = [255, 215, 0]; textColorToSet = [0, 0, 0]; break;
                 case 4: fillColor = [50, 50, 50]; textColorToSet = [255, 255, 255]; break;
@@ -409,9 +411,8 @@ const App: React.FC = () => {
       <footer className="mt-auto pt-[clamp(0.5rem,2vh,1rem)] text-center text-[clamp(0.75rem,2vw,0.875rem)] w-full max-w-2xl">
         <div className="mb-1 flex flex-wrap justify-center items-center gap-x-2">
           <a
-            href="/howto"
+            href="/howto/index.html"
             target="_self"
-            rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerHowToUseLinkAriaLabelText}
           >
@@ -420,7 +421,7 @@ const App: React.FC = () => {
           <span className="text-white" aria-hidden="true">｜</span>
           <a
             href="https://forms.gle/csjy48wACEEusuE9A"
-            target="_self"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerContactLinkAriaLabelText}
@@ -429,13 +430,21 @@ const App: React.FC = () => {
           </a>
           <span className="text-white" aria-hidden="true">｜</span>
           <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/terms/index.html"
+            target="_self"
             className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
             aria-label={footerTermsLinkAriaLabelText}
           >
             {footerTermsLinkText}
+          </a>
+          <span className="text-white" aria-hidden="true">｜</span>
+          <a
+            href="/privacy/index.html"
+            target="_self"
+            className="text-white hover:text-slate-300 hover:underline focus:outline-none focus:underline"
+            aria-label={footerPrivacyPolicyLinkAriaLabelText}
+          >
+            {footerPrivacyPolicyLinkText}
           </a>
           <span className="text-white" aria-hidden="true">｜</span>
           <span className="text-white whitespace-nowrap">
